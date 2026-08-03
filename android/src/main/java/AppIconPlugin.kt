@@ -3,7 +3,6 @@ package com.plugin.appicon
 import android.app.Activity
 import android.content.ComponentName
 import android.content.pm.PackageManager
-import android.os.Bundle
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.TauriPlugin

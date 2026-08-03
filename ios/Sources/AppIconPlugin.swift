@@ -1,7 +1,5 @@
-import SwiftRs
 import Tauri
 import UIKit
-import WebKit
 
 private struct SetIconArgs: Decodable {
   let icon: String?
