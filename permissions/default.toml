@@ -1,0 +1,3 @@
+[default]
+description = "Allows selecting bundled alternate app icons."
+permissions = ["allow-get-available-icons", "allow-get-current-icon", "allow-set-icon"]
