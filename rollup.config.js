@@ -23,9 +23,5 @@ export default {
       declarationDir: dirname(pkg.exports.import)
     })
   ],
-  external: [
-    /^@tauri-apps\/api/,
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {})
-  ]
+  external: [/^@tauri-apps\/api/, ...Object.keys(pkg.dependencies)]
 }

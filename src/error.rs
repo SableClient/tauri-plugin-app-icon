@@ -6,8 +6,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("app icon switching is only supported on iOS and Android")]
     UnsupportedPlatform,
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
     #[cfg(mobile)]
     #[error(transparent)]
     PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
