@@ -1,17 +1,10 @@
 #!/usr/bin/env node
 
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { join, resolve } from 'node:path';
+
+import { fail, generateIcon, iconName, loadConfig, validateIcons } from './lib.mjs';
 
 const START = '    <!-- APP-ICON ALTERNATES START -->';
 const END = '    <!-- APP-ICON ALTERNATES END -->';
@@ -36,56 +29,24 @@ const IMAGES = [
   ['1024x1024', 'ios-marketing', 'AppIcon-512@2x.png', '1x'],
 ];
 
-function fail(message) {
-  console.error(`app-icon: ${message}`);
-  process.exit(1);
+const { config, configDir } = loadConfig(process.argv.slice(2), 'generate-ios.mjs');
+if (!config.ios?.assetsDirectory || !config.ios?.infoPlist) {
+  fail('ios.assetsDirectory and ios.infoPlist are required');
 }
-
-function iconName(id) {
-  return `AppIcon${id.replace(/(^|_)([a-z0-9])/g, (_, _separator, character) => character.toUpperCase())}`;
-}
-
-if (process.argv.length !== 4 || process.argv[2] !== '--config') {
-  fail('usage: generate-ios.mjs --config <path>');
-}
-
-const configPath = resolve(process.argv[3]);
-const configDirectory = dirname(configPath);
-const config = JSON.parse(readFileSync(configPath, 'utf8'));
-if (
-  !config.ios?.assetsDirectory ||
-  !config.ios?.infoPlist ||
-  !Array.isArray(config.icons) ||
-  config.icons.length === 0
-) {
-  fail('ios.assetsDirectory, ios.infoPlist, and icons are required');
-}
+validateIcons(config.icons);
 
 const temporaryDirectory = mkdtempSync(join(tmpdir(), 'tauri-app-icon-'));
 try {
-  const assetsDirectory = resolve(configDirectory, config.ios.assetsDirectory);
+  const assetsDirectory = resolve(configDir, config.ios.assetsDirectory);
   mkdirSync(assetsDirectory, { recursive: true });
   writeFileSync(
     join(assetsDirectory, 'Contents.json'),
     '{"info":{"author":"xcode","version":1}}\n'
   );
 
-  const iconIds = new Set();
   for (const icon of config.icons) {
-    if (!/^[a-z][a-z0-9_]*$/.test(icon.id) || !icon.source) {
-      fail('each icon requires a lowercase ID and source image');
-    }
-    if (iconIds.has(icon.id)) fail(`duplicate icon ID: ${icon.id}`);
-    iconIds.add(icon.id);
-    const source = resolve(configDirectory, icon.source);
-    if (!existsSync(source)) fail(`source image not found: ${relative(process.cwd(), source)}`);
-
     const output = join(temporaryDirectory, icon.id);
-    const result = spawnSync('pnpm', ['tauri', 'icon', source, '--output', output], {
-      cwd: process.cwd(),
-      stdio: 'inherit',
-    });
-    if (result.status !== 0) fail(`Tauri icon generation failed for ${icon.id}`);
+    generateIcon(icon, configDir, output);
 
     const iconSet = join(assetsDirectory, `${iconName(icon.id)}.appiconset`);
     mkdirSync(iconSet, { recursive: true });
@@ -110,7 +71,7 @@ try {
     );
   }
 
-  const infoPlistPath = resolve(configDirectory, config.ios.infoPlist);
+  const infoPlistPath = resolve(configDir, config.ios.infoPlist);
   const infoPlist = readFileSync(infoPlistPath, 'utf8');
   const alternates = config.icons
     .map(
