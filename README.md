@@ -47,6 +47,35 @@ Use Xcode's Alternate App Icon Sets build setting when possible so it generates 
 
 ## Android setup
 
+### Generation
+
+The included generator turns source PNGs into Android density resources and maintains a marked alias block in the generated manifest. The host app owns the configuration because it owns its Android activity and native project:
+
+```json
+{
+  "android": {
+    "mainActivity": ".MainActivity",
+    "resourcesDirectory": "icons/android",
+    "manifest": "gen/android/app/src/main/AndroidManifest.xml"
+  },
+  "ios": {
+    "assetsDirectory": "icons/ios/AppIcons.xcassets",
+    "infoPlist": "Info.plist"
+  },
+  "icons": [{ "id": "midnight", "source": "icons/app-icons/midnight.png" }]
+}
+```
+
+Run it from the host application so `pnpm tauri icon` resolves from that app:
+
+```sh
+node node_modules/tauri-plugin-app-icon/scripts/generate-android.mjs --config src-tauri/app-icons.json
+```
+
+The source images must be square PNGs. Run generation before an Android build whenever the configuration or source image changes.
+
+For iOS, run `generate-ios.mjs` with the same configuration. It creates alternate app-icon sets in the configured asset catalog and maintains `CFBundleAlternateIcons` in the configured Info.plist.
+
 Declare one disabled `activity-alias` per icon in the host app's `AndroidManifest.xml`. Every alias must have a unique `tauri-plugin-app-icon-id` metadata value and reference an adaptive icon resource. The activity itself must not have a launcher intent filter; otherwise Android can display both the primary launcher entry and an alias.
 
 ```xml
