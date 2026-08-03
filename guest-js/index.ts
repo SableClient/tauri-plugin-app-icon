@@ -7,8 +7,7 @@ export async function availableIcons(): Promise<string[]> {
 
 /** Returns the selected alternate icon ID, or `null` for the primary icon. */
 export async function currentIcon(): Promise<string | null> {
-  return invoke<{ icon: string | null }>('plugin:app-icon|get_current_icon')
-    .then((result) => result.icon)
+  return invoke<string | null>('plugin:app-icon|get_current_icon')
 }
 
 /** Selects a bundled alternate icon. Pass `null` to restore the primary icon. */

@@ -19,10 +19,16 @@ describe('app icon API', () => {
   })
 
   it('returns null for the primary icon', async () => {
-    invoke.mockResolvedValue({ icon: null })
+    invoke.mockResolvedValue(null)
 
     await expect(currentIcon()).resolves.toBeNull()
     expect(invoke).toHaveBeenCalledWith('plugin:app-icon|get_current_icon')
+  })
+
+  it('returns the selected alternate icon ID', async () => {
+    invoke.mockResolvedValue('midnight')
+
+    await expect(currentIcon()).resolves.toBe('midnight')
   })
 
   it('passes the selected icon ID to the plugin', async () => {

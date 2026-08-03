@@ -14,8 +14,11 @@ class AppIconPlugin: Plugin {
     invoke.resolve(availableIcons())
   }
 
+  // UIApplication may only be touched on the main thread; Tauri runs commands on its IPC queue.
   @objc public func getCurrentIcon(_ invoke: Invoke) {
-    invoke.resolve(["icon": UIApplication.shared.alternateIconName ?? NSNull()])
+    DispatchQueue.main.async {
+      invoke.resolve(["icon": UIApplication.shared.alternateIconName ?? NSNull()])
+    }
   }
 
   @objc public func setIcon(_ invoke: Invoke) throws {
@@ -24,12 +27,13 @@ class AppIconPlugin: Plugin {
       invoke.reject("Unknown app icon: \(icon)")
       return
     }
-    guard UIApplication.shared.supportsAlternateIcons else {
-      invoke.reject("This app has no alternate icons configured")
-      return
-    }
 
     DispatchQueue.main.async {
+      guard UIApplication.shared.supportsAlternateIcons else {
+        invoke.reject("This app has no alternate icons configured")
+        return
+      }
+
       UIApplication.shared.setAlternateIconName(icon) { error in
         if let error {
           invoke.reject(error.localizedDescription)
