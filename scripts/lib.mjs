@@ -20,6 +20,7 @@ export function validateIcons(icons) {
   if (!Array.isArray(icons) || icons.length === 0) fail('at least one icon is required');
 
   const ids = new Set();
+  const nativeNames = new Set();
   for (const icon of icons) {
     if (!/^[a-z][a-z0-9_]*$/.test(icon.id) || !icon.source) {
       fail('each icon requires a lowercase ID and source image');
@@ -27,6 +28,10 @@ export function validateIcons(icons) {
     if (RESERVED_ICON_IDS.has(icon.id)) fail(`reserved icon ID: ${icon.id}`);
     if (ids.has(icon.id)) fail(`duplicate icon ID: ${icon.id}`);
     ids.add(icon.id);
+
+    const nativeName = iconName(icon.id);
+    if (nativeNames.has(nativeName)) fail(`icon IDs must map to unique native names: ${nativeName}`);
+    nativeNames.add(nativeName);
   }
 }
 

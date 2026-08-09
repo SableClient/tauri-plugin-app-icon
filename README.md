@@ -39,25 +39,9 @@ The plugin switches only icons already compiled into the application. It does no
 
 ## iOS setup
 
-Create an asset catalog icon set for every alternative and register each set under `CFBundleIcons > CFBundleAlternateIcons` in the app's `Info.plist`. The dictionary key is the ID exposed by `availableIcons` and accepted by `setIcon`.
+Create an asset catalog icon set for every alternative. Configure Xcode to compile those sets by enabling **Include All App Icon Assets** (`ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES`) or by listing them under **Alternate App Icon Sets**. Xcode generates `CFBundleIcons`; Apple recommends not maintaining those keys manually.
 
-```xml
-<key>CFBundleIcons</key>
-<dict>
-  <key>CFBundleAlternateIcons</key>
-  <dict>
-    <key>midnight</key>
-    <dict>
-      <key>CFBundleIconFiles</key>
-      <array>
-        <string>AppIconMidnight</string>
-      </array>
-    </dict>
-  </dict>
-</dict>
-```
-
-Use Xcode's Alternate App Icon Sets build setting when possible so it generates this entry. iOS icon files must be opaque and include all required device sizes.
+The generator records a mapping between each public lowercase ID and its Xcode asset name. For example, `midnight` maps to `AppIconMidnight`, while `availableIcons()` and `setIcon()` continue to use `midnight`. iOS icon files must be opaque and include all required device sizes.
 
 ## Android setup
 
@@ -92,7 +76,7 @@ node node_modules/tauri-plugin-app-icon-api/scripts/generate-android.mjs --confi
 
 The generator writes one adaptive icon plus its background colour per ID, rewrites the marked alias block, and removes the launcher intent filter from `android.mainActivity`. Re-running it is idempotent. It calls `tauri icon` through the package manager that invoked it, defaulting to pnpm. The source images must be square PNGs. Run generation before an Android build whenever the configuration, the source images, or the generated Android project change.
 
-For iOS, run `generate-ios.mjs` with the same configuration. It creates alternate app-icon sets in the configured asset catalog and maintains `CFBundleAlternateIcons` in the configured Info.plist.
+For iOS, run `generate-ios.mjs` with the same configuration. It creates alternate app-icon sets in the configured asset catalog and maintains the plugin's public-ID mapping in the configured Info.plist. Set `ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES` on the iOS app target so newly generated sets are compiled without maintaining a second per-icon list.
 
 ### Declaring aliases by hand
 

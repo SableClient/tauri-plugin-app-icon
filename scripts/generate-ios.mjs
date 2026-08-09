@@ -5,9 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { fail, generateIcon, iconName, loadConfig, validateIcons } from './lib.mjs';
-
-const START = '    <!-- APP-ICON ALTERNATES START -->';
-const END = '    <!-- APP-ICON ALTERNATES END -->';
+import { applyIconAliases } from './ios-plist.mjs';
 const IMAGES = [
   ['20x20', 'iphone', 'AppIcon-20x20@2x.png', '2x'],
   ['20x20', 'iphone', 'AppIcon-20x20@3x.png', '3x'],
@@ -41,7 +39,7 @@ try {
   mkdirSync(assetsDirectory, { recursive: true });
   writeFileSync(
     join(assetsDirectory, 'Contents.json'),
-    '{"info":{"author":"xcode","version":1}}\n'
+    '{ "info": { "author": "xcode", "version": 1 } }\n'
   );
 
   for (const icon of config.icons) {
@@ -73,31 +71,10 @@ try {
 
   const infoPlistPath = resolve(configDir, config.ios.infoPlist);
   const infoPlist = readFileSync(infoPlistPath, 'utf8');
-  const alternates = config.icons
-    .map(
-      ({ id }) => `      <key>${id}</key>
-      <dict>
-        <key>CFBundleIconFiles</key>
-        <array>
-          <string>${iconName(id)}</string>
-        </array>
-      </dict>`
-    )
-    .join('\n');
-  const block = `${START}
-    <key>CFBundleIcons</key>
-    <dict>
-      <key>CFBundleAlternateIcons</key>
-      <dict>
-${alternates}
-      </dict>
-    </dict>
-${END}`;
-  const marked = new RegExp(`${START}[\\s\\S]*?${END}`);
-  const updated = marked.test(infoPlist)
-    ? infoPlist.replace(marked, block)
-    : infoPlist.replace('\n</dict>\n</plist>', `\n${block}\n</dict>\n</plist>`);
-  if (updated === infoPlist && !marked.test(infoPlist)) fail(`could not update ${infoPlistPath}`);
+  const updated = applyIconAliases(infoPlist, config.icons);
+  if (updated === infoPlist && !infoPlist.includes('<!-- APP-ICON ALTERNATES START -->')) {
+    fail(`could not update ${infoPlistPath}`);
+  }
   writeFileSync(infoPlistPath, updated);
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true });
