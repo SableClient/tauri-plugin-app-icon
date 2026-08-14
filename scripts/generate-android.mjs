@@ -43,11 +43,8 @@ function generateResources(icon, config, configDir, temporaryDirectory) {
   const resources = resolve(configDir, config.android.resourcesDirectory);
   for (const density of ANDROID_DENSITIES) {
     for (const suffix of ['', '_round', '_foreground']) {
-      // Tauri only applies android_fg_scale to the composited launcher bitmap.
-      // Reuse that bitmap as the adaptive foreground so both paths use its safe area.
-      const generatedSuffix = suffix === '_foreground' ? '' : suffix;
       cpSync(
-        join(generated, `mipmap-${density}`, `ic_launcher${generatedSuffix}.png`),
+        join(generated, `mipmap-${density}`, `ic_launcher${suffix}.png`),
         join(resources, `mipmap-${density}`, `ic_launcher_${icon.id}${suffix}.png`)
       );
     }
