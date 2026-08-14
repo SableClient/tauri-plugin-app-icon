@@ -57,6 +57,17 @@ export function generateIcon(icon, configDir, outputDirectory, options = {}) {
   if (!existsSync(source)) fail(`source image not found: ${relative(process.cwd(), source)}`);
 
   let input = source;
+  if (options.iosOpaqueBackground) {
+    mkdirSync(outputDirectory, { recursive: true });
+    input = join(outputDirectory, 'ios-icon.svg');
+    const relativeSource = relative(outputDirectory, source);
+    writeFileSync(
+      input,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="${
+        icon.backgroundColor ?? '#000000'
+      }"/><image href="${relativeSource}" width="512" height="512"/></svg>`
+    );
+  }
   if (options.androidForegroundScale) {
     mkdirSync(outputDirectory, { recursive: true });
     input = join(outputDirectory, 'tauri-icon.json');

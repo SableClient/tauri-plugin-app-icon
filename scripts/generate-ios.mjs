@@ -44,7 +44,7 @@ try {
 
   for (const icon of config.icons) {
     const output = join(temporaryDirectory, icon.id);
-    generateIcon(icon, configDir, output);
+    generateIcon(icon, configDir, output, { iosOpaqueBackground: true });
 
     const iconSet = join(assetsDirectory, `${iconName(icon.id)}.appiconset`);
     mkdirSync(iconSet, { recursive: true });
