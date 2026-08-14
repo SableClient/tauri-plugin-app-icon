@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, relative, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 // `default` names the primary icon in the generated Android manifest metadata.
@@ -52,11 +52,34 @@ function tauriRunner() {
 }
 
 /** Runs `tauri icon` for one source image, writing per-platform icons into `outputDirectory`. */
-export function generateIcon(icon, configDir, outputDirectory) {
+export function generateIcon(icon, configDir, outputDirectory, options = {}) {
   const source = resolve(configDir, icon.source);
   if (!existsSync(source)) fail(`source image not found: ${relative(process.cwd(), source)}`);
 
-  const args = ['tauri', 'icon', source, '--output', outputDirectory];
+  let input = source;
+  if (options.androidForegroundScale) {
+    mkdirSync(outputDirectory, { recursive: true });
+    input = join(outputDirectory, 'tauri-icon.json');
+    const relativeSource = relative(outputDirectory, source);
+    const backgroundPath = join(outputDirectory, 'android-background.svg');
+    writeFileSync(
+      backgroundPath,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="${
+        icon.backgroundColor ?? '#000000'
+      }"/></svg>`
+    );
+    writeFileSync(
+      input,
+      JSON.stringify({
+        default: relativeSource,
+        android_fg: relativeSource,
+        android_bg: 'android-background.svg',
+        android_fg_scale: options.androidForegroundScale,
+      })
+    );
+  }
+
+  const args = ['tauri', 'icon', input, '--output', outputDirectory];
   if (icon.backgroundColor) args.push('--ios-color', icon.backgroundColor);
 
   const result = spawnSync(tauriRunner(), args, {
