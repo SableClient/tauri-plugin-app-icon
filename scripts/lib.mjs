@@ -25,6 +25,9 @@ export function validateIcons(icons) {
     if (!/^[a-z][a-z0-9_]*$/.test(icon.id) || !icon.source) {
       fail('each icon requires a lowercase ID and source image');
     }
+    if (icon.backgroundColor && !/^#[\dA-Fa-f]{3,8}$/.test(icon.backgroundColor)) {
+      fail('icon backgroundColor must be a hexadecimal color');
+    }
     if (RESERVED_ICON_IDS.has(icon.id)) fail(`reserved icon ID: ${icon.id}`);
     if (ids.has(icon.id)) fail(`duplicate icon ID: ${icon.id}`);
     ids.add(icon.id);

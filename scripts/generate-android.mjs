@@ -22,13 +22,16 @@ const ANDROID_DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
  * referenced as `@color/ic_launcher_background`: that resource only exists when the host app's own
  * primary icon was generated without a background image.
  */
-function backgroundColor(id, generated) {
+function backgroundColor(icon, generated) {
+  if (icon.backgroundColor) return icon.backgroundColor;
+
   const colorPath = join(generated, 'values', 'ic_launcher_background.xml');
-  if (!existsSync(colorPath)) fail(`Tauri icon did not generate a background colour for ${id}`);
+  if (!existsSync(colorPath))
+    fail(`Tauri icon did not generate a background colour for ${icon.id}`);
   const color = readFileSync(colorPath, 'utf8').match(
     /<color name="ic_launcher_background">([^<]+)<\/color>/
   );
-  if (!color) fail(`could not read the generated background colour for ${id}`);
+  if (!color) fail(`could not read the generated background colour for ${icon.id}`);
   return color[1];
 }
 
@@ -54,7 +57,7 @@ function generateResources(icon, config, configDir, temporaryDirectory) {
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
   <foreground android:drawable="@mipmap/ic_launcher_${icon.id}_foreground"/>
   <background>
-    <color android:color="${backgroundColor(icon.id, generated)}"/>
+    <color android:color="${backgroundColor(icon, generated)}"/>
   </background>
 </adaptive-icon>
 `

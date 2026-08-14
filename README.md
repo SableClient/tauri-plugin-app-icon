@@ -62,7 +62,13 @@ The included generator turns source PNGs into Android density resources and main
     "assetsDirectory": "icons/ios/AppIcons.xcassets",
     "infoPlist": "Info.plist"
   },
-  "icons": [{ "id": "midnight", "source": "icons/app-icons/midnight.png" }]
+  "icons": [
+    {
+      "id": "midnight",
+      "source": "icons/app-icons/midnight.png",
+      "backgroundColor": "#181818"
+    }
+  ]
 }
 ```
 
@@ -74,7 +80,7 @@ Run it from the host application so the Tauri CLI resolves from that app:
 node node_modules/tauri-plugin-app-icon-api/scripts/generate-android.mjs --config src-tauri/app-icons.json
 ```
 
-The generator writes one adaptive icon plus its background colour per ID, rewrites the marked alias block, and removes the launcher intent filter from `android.mainActivity`. Re-running it is idempotent. It calls `tauri icon` through the package manager that invoked it, defaulting to pnpm. The source images must be square PNGs. Run generation before an Android build whenever the configuration, the source images, or the generated Android project change.
+The generator writes one adaptive icon plus its background colour per ID, uses that adaptive resource for both the normal and round alternate launcher icon, rewrites the marked alias block, and removes the launcher intent filter from `android.mainActivity`. Set `backgroundColor` when the source image uses a background color: it avoids relying on Tauri's generated fallback. Re-running it is idempotent. It calls `tauri icon` through the package manager that invoked it, defaulting to pnpm. The source images must be square PNGs. Run generation before an Android build whenever the configuration, the source images, or the generated Android project change.
 
 For iOS, run `generate-ios.mjs` with the same configuration. It creates alternate app-icon sets in the configured asset catalog and maintains the plugin's public-ID mapping in the configured Info.plist. Set `ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES` on the iOS app target so newly generated sets are compiled without maintaining a second per-icon list.
 

@@ -5,6 +5,7 @@ const END = '<!-- APP-ICON ALIASES END -->';
 
 function aliasXml({ id, mainActivity, isDefault = false }) {
   const suffix = isDefault ? '' : `_${id}`;
+  const roundIcon = isDefault ? `@mipmap/ic_launcher_round` : `@mipmap/ic_launcher${suffix}`;
   const name = isDefault ? 'AppIconDefault' : iconName(id);
   const metadata = isDefault
     ? `\n            <meta-data\n                android:name="tauri-plugin-app-icon-default"\n                android:value="true" />`
@@ -14,7 +15,7 @@ function aliasXml({ id, mainActivity, isDefault = false }) {
             android:name=".${name}"
             android:targetActivity="${mainActivity}"
             android:icon="@mipmap/ic_launcher${suffix}"
-            android:roundIcon="@mipmap/ic_launcher${suffix}_round"
+            android:roundIcon="${roundIcon}"
             android:enabled="${isDefault}"
             android:exported="true">
             <meta-data
