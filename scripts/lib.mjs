@@ -33,7 +33,8 @@ export function validateIcons(icons) {
     ids.add(icon.id);
 
     const nativeName = iconName(icon.id);
-    if (nativeNames.has(nativeName)) fail(`icon IDs must map to unique native names: ${nativeName}`);
+    if (nativeNames.has(nativeName))
+      fail(`icon IDs must map to unique native names: ${nativeName}`);
     nativeNames.add(nativeName);
   }
 }
@@ -55,7 +56,10 @@ export function generateIcon(icon, configDir, outputDirectory) {
   const source = resolve(configDir, icon.source);
   if (!existsSync(source)) fail(`source image not found: ${relative(process.cwd(), source)}`);
 
-  const result = spawnSync(tauriRunner(), ['tauri', 'icon', source, '--output', outputDirectory], {
+  const args = ['tauri', 'icon', source, '--output', outputDirectory];
+  if (icon.backgroundColor) args.push('--ios-color', icon.backgroundColor);
+
+  const result = spawnSync(tauriRunner(), args, {
     cwd: process.cwd(),
     stdio: 'inherit',
   });
