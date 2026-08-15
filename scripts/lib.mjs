@@ -60,24 +60,22 @@ export function generateIcon(icon, configDir, outputDirectory, options = {}) {
   if (options.iosOpaqueBackground) {
     mkdirSync(outputDirectory, { recursive: true });
     input = join(outputDirectory, 'ios-icon.svg');
-    const relativeSource = relative(outputDirectory, source);
     writeFileSync(
       input,
       `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="${
         icon.backgroundColor ?? '#000000'
-      }"/><image href="${relativeSource}" width="512" height="512"/></svg>`
+      }"/><image href="${source}" width="512" height="512"/></svg>`
     );
   }
   if (options.androidForegroundScale) {
     mkdirSync(outputDirectory, { recursive: true });
     input = join(outputDirectory, 'tauri-icon.json');
-    const relativeSource = relative(outputDirectory, source);
     const foregroundPath = join(outputDirectory, 'android-foreground.svg');
     const size = 512 * (options.androidForegroundScale / 100);
     const offset = (512 - size) / 2;
     writeFileSync(
       foregroundPath,
-      `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><image href="${relativeSource}" x="${offset}" y="${offset}" width="${size}" height="${size}"/></svg>`
+      `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><image href="${source}" x="${offset}" y="${offset}" width="${size}" height="${size}"/></svg>`
     );
     writeFileSync(
       input,
