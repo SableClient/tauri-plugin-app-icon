@@ -67,24 +67,6 @@ export function generateIcon(icon, configDir, outputDirectory, options = {}) {
       }"/><image href="${source}" width="512" height="512"/></svg>`
     );
   }
-  if (options.androidForegroundScale) {
-    mkdirSync(outputDirectory, { recursive: true });
-    input = join(outputDirectory, 'tauri-icon.json');
-    const foregroundPath = join(outputDirectory, 'android-foreground.svg');
-    const size = 512 * (options.androidForegroundScale / 100);
-    const offset = (512 - size) / 2;
-    writeFileSync(
-      foregroundPath,
-      `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><image href="${source}" x="${offset}" y="${offset}" width="${size}" height="${size}"/></svg>`
-    );
-    writeFileSync(
-      input,
-      JSON.stringify({
-        default: 'android-foreground.svg',
-        android_fg: 'android-foreground.svg',
-      })
-    );
-  }
 
   const args = ['tauri', 'icon', input, '--output', outputDirectory];
   if (icon.backgroundColor) args.push('--ios-color', icon.backgroundColor);

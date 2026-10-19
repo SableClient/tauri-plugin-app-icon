@@ -37,7 +37,7 @@ function backgroundColor(icon, generated) {
 
 function generateResources(icon, config, configDir, temporaryDirectory) {
   const output = join(temporaryDirectory, icon.id);
-  generateIcon(icon, configDir, output, { androidForegroundScale: 85 });
+  generateIcon(icon, configDir, output);
 
   const generated = join(output, 'android');
   const resources = resolve(configDir, config.android.resourcesDirectory);
@@ -55,7 +55,9 @@ function generateResources(icon, config, configDir, temporaryDirectory) {
     join(anyDpi, `ic_launcher_${icon.id}.xml`),
     `<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-  <foreground android:drawable="@mipmap/ic_launcher_${icon.id}_foreground"/>
+  <foreground>
+    <inset android:drawable="@mipmap/ic_launcher_${icon.id}_foreground" android:inset="16.5%" />
+  </foreground>
   <background>
     <color android:color="${backgroundColor(icon, generated)}"/>
   </background>
