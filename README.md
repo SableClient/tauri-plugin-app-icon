@@ -72,6 +72,12 @@ The included generator turns source PNGs into Android density resources and main
 }
 ```
 
+`android.aliasMetadata` adds `<meta-data>` entries, each with a `name` and either a `value` or a `resource`, to every alias. Android reads some, such as `android.app.shortcuts`, only from launcher entries, which the aliases are:
+
+```json
+"aliasMetadata": [{ "name": "android.app.shortcuts", "resource": "@xml/shortcuts" }]
+```
+
 All paths are relative to the configuration file. The resources must reach a directory the Android app compiles: write straight into the generated app's `res` directory, as above, or into a directory you copy or link into it. Icon IDs must match `^[a-z][a-z0-9_]*$`; `default` is reserved for the primary icon.
 
 Run it from the host application so the Tauri CLI resolves from that app:

@@ -3,7 +3,19 @@ import { fail, iconName } from './lib.mjs';
 const START = '<!-- APP-ICON ALIASES START -->';
 const END = '<!-- APP-ICON ALIASES END -->';
 
-function aliasXml({ id, mainActivity, isDefault = false }) {
+function aliasMetadataXml(entries = []) {
+  return entries
+    .map(({ name, value, resource }) => {
+      if (typeof name !== 'string' || (value === undefined) === (resource === undefined)) {
+        fail('each android.aliasMetadata entry needs a name and either a value or a resource');
+      }
+      const [attribute, content] = resource === undefined ? ['value', value] : ['resource', resource];
+      return `\n            <meta-data\n                android:name="${name}"\n                android:${attribute}="${content}" />`;
+    })
+    .join('');
+}
+
+function aliasXml({ id, mainActivity, isDefault = false, extraMetadata = '' }) {
   const suffix = isDefault ? '' : `_${id}`;
   const roundIcon = isDefault ? `@mipmap/ic_launcher_round` : `@mipmap/ic_launcher${suffix}`;
   const name = isDefault ? 'AppIconDefault' : iconName(id);
@@ -20,7 +32,7 @@ function aliasXml({ id, mainActivity, isDefault = false }) {
             android:exported="true">
             <meta-data
                 android:name="tauri-plugin-app-icon-id"
-                android:value="${isDefault ? 'default' : id}" />${metadata}
+                android:value="${isDefault ? 'default' : id}" />${metadata}${extraMetadata}
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,10 +62,11 @@ function removeActivityLauncherEntry(manifest, mainActivity) {
 
 /** Adds or refreshes the marked alias block in an Android manifest. Idempotent. */
 export function applyAliases(manifest, config) {
+  const extraMetadata = aliasMetadataXml(config.android.aliasMetadata);
   const aliases = [
-    aliasXml({ mainActivity: config.android.mainActivity, isDefault: true }),
+    aliasXml({ mainActivity: config.android.mainActivity, isDefault: true, extraMetadata }),
     ...config.icons.map((icon) =>
-      aliasXml({ id: icon.id, mainActivity: config.android.mainActivity })
+      aliasXml({ id: icon.id, mainActivity: config.android.mainActivity, extraMetadata })
     ),
   ].join('\n\n');
   const block = `${START}\n${aliases}\n        ${END}`;

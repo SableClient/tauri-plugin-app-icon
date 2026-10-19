@@ -67,6 +67,30 @@ describe('applyAliases', () => {
     expect(updated).toContain('android:name=".MainActivity"');
   });
 
+  it('adds the configured meta-data to every alias', () => {
+    const updated = applyAliases(MANIFEST, {
+      ...CONFIG,
+      android: {
+        ...CONFIG.android,
+        aliasMetadata: [
+          { name: 'android.app.shortcuts', resource: '@xml/shortcuts' },
+          { name: 'com.example.flag', value: 'on' },
+        ],
+      },
+    });
+
+    expect(updated.match(/android:resource="@xml\/shortcuts"/g)).toHaveLength(3);
+    expect(updated.match(/android:name="com.example.flag"\s+android:value="on"/g)).toHaveLength(3);
+  });
+
+  it('rejects meta-data without exactly one of a value or a resource', () => {
+    const withMetadata = (aliasMetadata) => () =>
+      applyAliases(MANIFEST, { ...CONFIG, android: { ...CONFIG.android, aliasMetadata } });
+
+    expect(withMetadata([{ name: 'both', value: 'a', resource: '@xml/a' }])).toThrow();
+    expect(withMetadata([{ name: 'neither' }])).toThrow();
+  });
+
   it('refreshes the block instead of duplicating it on re-runs', () => {
     const once = applyAliases(MANIFEST, CONFIG);
 
