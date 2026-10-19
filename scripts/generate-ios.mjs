@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 
 import { fail, generateIcon, iconName, loadConfig, validateIcons } from './lib.mjs';
 import { applyIconAliases } from './ios-plist.mjs';
+import { applySpecIconAliases } from './xcodegen-spec.mjs';
 const IMAGES = [
   ['20x20', 'iphone', 'AppIcon-20x20@2x.png', '2x'],
   ['20x20', 'iphone', 'AppIcon-20x20@3x.png', '3x'],
@@ -28,8 +29,8 @@ const IMAGES = [
 ];
 
 const { config, configDir } = loadConfig(process.argv.slice(2), 'generate-ios.mjs');
-if (!config.ios?.assetsDirectory || !config.ios?.infoPlist) {
-  fail('ios.assetsDirectory and ios.infoPlist are required');
+if (!config.ios?.assetsDirectory || !config.ios.infoPlist === !config.ios.projectSpec) {
+  fail('ios.assetsDirectory and either ios.infoPlist or ios.projectSpec are required');
 }
 validateIcons(config.icons);
 
@@ -69,13 +70,18 @@ try {
     );
   }
 
-  const infoPlistPath = resolve(configDir, config.ios.infoPlist);
-  const infoPlist = readFileSync(infoPlistPath, 'utf8');
-  const updated = applyIconAliases(infoPlist, config.icons);
-  if (updated === infoPlist && !infoPlist.includes('<!-- APP-ICON ALTERNATES START -->')) {
-    fail(`could not update ${infoPlistPath}`);
+  if (config.ios.projectSpec) {
+    const specPath = resolve(configDir, config.ios.projectSpec);
+    writeFileSync(specPath, applySpecIconAliases(readFileSync(specPath, 'utf8'), config.icons));
+  } else {
+    const infoPlistPath = resolve(configDir, config.ios.infoPlist);
+    const infoPlist = readFileSync(infoPlistPath, 'utf8');
+    const updated = applyIconAliases(infoPlist, config.icons);
+    if (updated === infoPlist && !infoPlist.includes('<!-- APP-ICON ALTERNATES START -->')) {
+      fail(`could not update ${infoPlistPath}`);
+    }
+    writeFileSync(infoPlistPath, updated);
   }
-  writeFileSync(infoPlistPath, updated);
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true });
 }
